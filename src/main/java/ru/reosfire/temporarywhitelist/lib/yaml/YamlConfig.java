@@ -1,6 +1,5 @@
 package ru.reosfire.temporarywhitelist.lib.yaml;
 
-import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -74,7 +73,7 @@ public abstract class YamlConfig
 
     public YamlConfig(ConfigurationSection configurationSection)
     {
-        if (configurationSection == null) throw new NullArgumentException("configurationSection");
+        if (configurationSection == null) throw new NullPointerException("configurationSection");
         this.configurationSection = configurationSection;
     }
     private  <T extends YamlConfig> List<T> getNestedConfigs(IConfigCreator<T> creator, ConfigurationSection section)

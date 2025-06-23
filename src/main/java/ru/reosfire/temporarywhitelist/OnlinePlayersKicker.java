@@ -1,8 +1,8 @@
 package ru.reosfire.temporarywhitelist;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import ru.reosfire.temporarywhitelist.configuration.Config;
 import ru.reosfire.temporarywhitelist.configuration.localization.MessagesConfig;
 import ru.reosfire.temporarywhitelist.data.PlayerDatabase;
@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 public class OnlinePlayersKicker {
     private final TemporaryWhiteList pluginInstance;
@@ -19,8 +20,8 @@ public class OnlinePlayersKicker {
     private final PlayerDatabase database;
     private final MessagesConfig messages;
 
-    private BukkitTask checkerTask;
-    private BukkitTask kickerTask;
+    private ScheduledTask checkerTask;
+    private ScheduledTask kickerTask;
     private final ConcurrentLinkedQueue<UUID> toKick = new ConcurrentLinkedQueue<>();
 
     public OnlinePlayersKicker(TemporaryWhiteList pluginInstance) {
@@ -37,45 +38,48 @@ public class OnlinePlayersKicker {
     }
 
     public void stop() {
-        if(checkerTask != null) checkerTask.cancel();
-        if(kickerTask != null) kickerTask.cancel();
+        if (checkerTask != null) checkerTask.cancel();
+        if (kickerTask != null) kickerTask.cancel();
         toKick.clear();
     }
 
     private void runCheckerTask() {
         //TODO Smooth out load by check rolling queue.
-        checkerTask = Bukkit.getScheduler().runTaskTimer(pluginInstance, () ->
+        checkerTask = Bukkit.getAsyncScheduler().runAtFixedRate(pluginInstance, scheduledTask ->
         {
             List<PlayerInfo> potentialKickPlayersNames = new ArrayList<>();
-            for (Player player: Bukkit.getOnlinePlayers()) {
-                if (player.isOp()) continue;
-                if (player.hasPermission("TemporaryWhitelist.Bypass")) continue;
-
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (player.isOp()) {
+                    continue;
+                }
+                if (player.hasPermission("TemporaryWhitelist.Bypass")) {
+                    continue;
+                }
                 potentialKickPlayersNames.add(new PlayerInfo(player));
             }
 
-            Bukkit.getScheduler().runTaskAsynchronously(pluginInstance, () -> {
-                for (PlayerInfo player: potentialKickPlayersNames) {
+            Bukkit.getAsyncScheduler().runNow(pluginInstance, scheduledTask1 -> {
+                for (PlayerInfo player : potentialKickPlayersNames) {
                     if (database.canJoin(player.name)) continue;
-
                     toKick.add(player.uuid);
                 }
             });
-        },0, configuration.SubscriptionEndCheckTicks);
+        }, 0, configuration.SubscriptionEndCheckTicks, TimeUnit.MILLISECONDS);
     }
 
-    private void runKickerTask()
-    {
-        kickerTask = Bukkit.getScheduler().runTaskTimer(pluginInstance, () ->
+    private void runKickerTask() {
+        kickerTask = Bukkit.getAsyncScheduler().runAtFixedRate(pluginInstance, scheduledTask ->
         {
-            while (!toKick.isEmpty())
-            {
+            while (!toKick.isEmpty()) {
                 Player player = Bukkit.getPlayer(toKick.poll());
-                if (!player.isOnline()) continue;
-
-                player.kickPlayer(String.join("\n", Text.colorize(player, messages.Kick.WhilePlaying)));
+                if(player != null) {
+                    if (!player.isOnline()) {
+                        continue;
+                    }
+                    player.kickPlayer(String.join("\n", Text.colorize(player, messages.Kick.WhilePlaying)));
+                }
             }
-        }, configuration.SubscriptionEndCheckTicks / 2, configuration.SubscriptionEndCheckTicks);
+        }, configuration.SubscriptionEndCheckTicks / 2, configuration.SubscriptionEndCheckTicks, TimeUnit.MILLISECONDS);
     }
 
     private static class PlayerInfo {

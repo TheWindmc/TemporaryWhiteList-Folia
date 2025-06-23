@@ -10,6 +10,7 @@ api-version: 1.13
 softdepend:
   - PlaceholderAPI
   - EasyWhitelist
+folia-supported: true
 commands:
   twl:
     description: Base command of temporary white list

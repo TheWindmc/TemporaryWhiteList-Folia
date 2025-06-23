@@ -1,8 +1,5 @@
 package ru.reosfire.temporarywhitelist;
 
-import org.bstats.bukkit.Metrics;
-import org.bstats.charts.SimplePie;
-import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
@@ -60,10 +57,6 @@ public final class TemporaryWhiteList extends JavaPlugin
     public void onEnable()
     {
         load();
-        Metrics metrics = new Metrics(this, 14858);
-        metrics.addCustomChart(new SingleLineChart("whitelisted_players", () -> database.allList().size()));
-        metrics.addCustomChart(new SimplePie("whitelisted_players_per_server", () -> Integer.toString(database.allList().size())));
-        metrics.addCustomChart(new SimplePie("data_provider", () -> configuration.DataProvider));
 
         UpdateChecker updateChecker = new UpdateChecker(this, 99914);
         updateChecker.getVersion(version ->

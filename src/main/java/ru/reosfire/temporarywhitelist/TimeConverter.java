@@ -1,7 +1,7 @@
 package ru.reosfire.temporarywhitelist;
 
-import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import ru.reosfire.temporarywhitelist.configuration.Config;
 
 public class TimeConverter

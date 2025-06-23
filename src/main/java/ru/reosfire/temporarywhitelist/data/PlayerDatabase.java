@@ -1,7 +1,5 @@
 package ru.reosfire.temporarywhitelist.data;
 
-import org.apache.commons.lang.NullArgumentException;
-
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +39,9 @@ public class PlayerDatabase implements IUpdatable
     @Override
     public CompletableFuture<Boolean> update(PlayerData playerData)
     {
-        if (playerData == null) throw new NullArgumentException("playerName");
+        if (playerData == null) {
+            throw new NullPointerException("playerName");
+        }
 
         String name = playerData.Name;
         if (ignoreCase) name = name.toLowerCase(Locale.ROOT);
