@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import ru.reosfire.temporarywhitelist.data.IDataProvider;
 import ru.reosfire.temporarywhitelist.data.PlayerData;
 import ru.reosfire.temporarywhitelist.lib.yaml.YamlConfig;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +45,7 @@ public class YamlDataProvider implements IDataProvider
         if (playersSection == null) playersSection = yamlDataConfig.createSection("Players");
         return playersSection;
     }
+
     private ConfigurationSection getPlayerSection(String player)
     {
         ConfigurationSection playersSection = getPlayersSection();
@@ -107,7 +107,7 @@ public class YamlDataProvider implements IDataProvider
     @Override
     public CompletableFuture<Void> clear() {
         //TODO clear logic
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("Clear operation is not yet implemented");
     }
 
     @Override

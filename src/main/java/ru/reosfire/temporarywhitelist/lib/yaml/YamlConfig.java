@@ -17,9 +17,13 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class YamlConfig
 {
+    private static final Logger LOGGER = Logger.getLogger("YamlConfig");
+
     public static YamlConfiguration loadOrCreate(String resultFileName, String defaultConfigurationResource,
                                                  JavaPlugin plugin) throws IOException, InvalidConfigurationException
     {
@@ -53,6 +57,7 @@ public abstract class YamlConfig
 
             try(InputStream resource = plugin.getResource(defaultConfigurationResource))
             {
+                assert resource != null;
                 Files.copy(resource, configFile.toPath());
             }
         }
@@ -76,7 +81,8 @@ public abstract class YamlConfig
         if (configurationSection == null) throw new NullPointerException("configurationSection");
         this.configurationSection = configurationSection;
     }
-    private  <T extends YamlConfig> List<T> getNestedConfigs(IConfigCreator<T> creator, ConfigurationSection section)
+
+    private <T extends YamlConfig> List<T> getNestedConfigs(IConfigCreator<T> creator, ConfigurationSection section)
     {
         ArrayList<T> result = new ArrayList<>();
         for (String key : section.getKeys(false))
@@ -87,11 +93,12 @@ public abstract class YamlConfig
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Error loading nested config: " + key, e);
             }
         }
         return result;
     }
+
     public <T extends YamlConfig> List<T> getList(IConfigCreator<T> creator, String path)
     {
         List<?> list = getSection().getList(path);
@@ -140,6 +147,7 @@ public abstract class YamlConfig
     {
         return configurationSection.getLong(path);
     }
+
     public long getLong(String path, long def)
     {
         return configurationSection.getLong(path, def);
@@ -153,9 +161,13 @@ public abstract class YamlConfig
     public ConfigurationSection getSection(String path)
     {
         ConfigurationSection result = this.configurationSection.getConfigurationSection(path);
-        if (result == null) throw new IllegalArgumentException("Unknown path: " + getSection().getCurrentPath() + "." + path);
+        if (result == null) {
+            LOGGER.log(Level.WARNING, "Path not found: " + getSection().getCurrentPath() + "." + path + ", creating empty section");
+            return configurationSection.createSection(path);
+        }
         return result;
     }
+
     public ConfigurationSection getSection(String path, ConfigurationSection def)
     {
         ConfigurationSection result = this.configurationSection.getConfigurationSection(path);
@@ -183,7 +195,6 @@ public abstract class YamlConfig
     {
         return Text.setColors(getStringList(path));
     }
-
 
     public boolean isList(String path)
     {

@@ -8,9 +8,13 @@ import ru.reosfire.temporarywhitelist.data.PlayerData;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public interface IDataExporter
 {
+    Logger LOGGER = Logger.getLogger("IDataExporter");
+
     List<PlayerData> getAll();
 
     default ExportResult exportTo(IUpdatable updatable)
@@ -27,7 +31,7 @@ public interface IDataExporter
             updates[i] = updatable.update(playerData).handle((res, ex) ->
             {
                 if (ex == null) exportResult.addWithoutError(playerData);
-                else ex.printStackTrace();
+                else LOGGER.log(Level.SEVERE, "Error exporting player data: " + playerData, ex);
                 return null;
             });
         }
@@ -36,6 +40,7 @@ public interface IDataExporter
 
         return exportResult;
     }
+
     default CompletableFuture<ExportResult> exportToAsync(IUpdatable provider)
     {
         return CompletableFuture.supplyAsync(() -> exportTo(provider));
@@ -51,7 +56,7 @@ public interface IDataExporter
         catch (Exception e)
         {
             commandResults.Error.Send(sender);
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error during export", e);
         }
     }
 
@@ -63,7 +68,7 @@ public interface IDataExporter
             else
             {
                 commandResults.Error.Send(sender);
-                ex.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Error during async export", ex);
             }
             return null;
         });

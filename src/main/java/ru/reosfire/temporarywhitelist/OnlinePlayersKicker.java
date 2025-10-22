@@ -1,6 +1,7 @@
 package ru.reosfire.temporarywhitelist;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import ru.reosfire.temporarywhitelist.configuration.Config;
@@ -44,7 +45,6 @@ public class OnlinePlayersKicker {
     }
 
     private void runCheckerTask() {
-        //TODO Smooth out load by check rolling queue.
         checkerTask = Bukkit.getAsyncScheduler().runAtFixedRate(pluginInstance, scheduledTask ->
         {
             List<PlayerInfo> potentialKickPlayersNames = new ArrayList<>();
@@ -76,7 +76,8 @@ public class OnlinePlayersKicker {
                     if (!player.isOnline()) {
                         continue;
                     }
-                    player.kickPlayer(String.join("\n", Text.colorize(player, messages.Kick.WhilePlaying)));
+                    Component kickMessage = Component.text(String.join("\n", Text.colorize(player, messages.Kick.WhilePlaying)));
+                    player.kick(kickMessage);
                 }
             }
         }, configuration.SubscriptionEndCheckTicks / 2, configuration.SubscriptionEndCheckTicks, TimeUnit.MILLISECONDS);

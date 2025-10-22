@@ -29,7 +29,7 @@ public class ExportResult
     }
     public List<PlayerData> withError()
     {
-        if (WithoutError.size() == 0) return Found;
+        if (WithoutError.isEmpty()) return Found;
 
         List<PlayerData> result = new ArrayList<>();
 
@@ -68,7 +68,7 @@ public class ExportResult
         {
             result.append(player.Name).append(" ");
         }
-        if (result.length() > 0) result.deleteCharAt(result.length() - 1);
+        if (!result.isEmpty()) result.deleteCharAt(result.length() - 1);
 
         return result.toString();
     }

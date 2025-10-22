@@ -1,26 +1,38 @@
 package ru.reosfire.temporarywhitelist.lib.yaml.common.text;
 
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 import ru.reosfire.temporarywhitelist.lib.text.IColorizer;
 import ru.reosfire.temporarywhitelist.lib.yaml.YamlConfig;
 
 public class HoverConfig extends YamlConfig
 {
-    public final HoverEvent.Action Action;
+    public final String Action;
     public final String Value;
+
     public HoverConfig(ConfigurationSection configurationSection)
     {
         super(configurationSection);
-        Action = HoverEvent.Action.valueOf(getString("Action"));
+        Action = getString("Action").toUpperCase();
         Value = getColoredString("Value");
     }
 
-    public HoverEvent Unwrap(IColorizer colorizer)
+    @Nullable
+    public HoverEvent<?> Unwrap(IColorizer colorizer)
     {
-        //noinspection deprecation because 1.12.2
-        return new HoverEvent(Action, new BaseComponent[] {new TextComponent(colorizer.colorize(Value))});
+        Component hoverComponent = LegacyComponentSerializer.legacyAmpersand()
+                .deserialize(colorizer.colorize(Value));
+
+        return switch (Action) {
+            case "SHOW_TEXT" -> HoverEvent.showText(hoverComponent);
+            case "SHOW_ITEM" -> HoverEvent.hoverEvent(HoverEvent.Action.SHOW_ITEM,
+                    HoverEvent.ShowItem.showItem(
+                            net.kyori.adventure.key.Key.key("minecraft:stone"), 1));
+            case "SHOW_ENTITY" -> null;
+            default -> throw new IllegalArgumentException("Unknown hover action: " + Action);
+        };
     }
 }

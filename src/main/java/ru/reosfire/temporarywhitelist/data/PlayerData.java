@@ -62,8 +62,7 @@ public class PlayerData
     public boolean equals(Object o)
     {
         if (this == o) return true;
-        if (!(o instanceof PlayerData)) return false;
-        PlayerData that = (PlayerData) o;
+        if (!(o instanceof PlayerData that)) return false;
 
         return Permanent == that.Permanent && TimeAmount == that.TimeAmount && StartTime == that.StartTime && Name.equals(that.Name);
     }

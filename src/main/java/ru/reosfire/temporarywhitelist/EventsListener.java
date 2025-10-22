@@ -1,5 +1,6 @@
 package ru.reosfire.temporarywhitelist;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -52,7 +53,8 @@ public class EventsListener implements Listener
         if (bypassedByPreLogin.remove(player.getUniqueId())) return;
         if (player.hasPermission("TemporaryWhitelist.Bypass")) return;
 
-        String message = String.join("\n", Text.colorize(player, messages.Kick.Connecting));
-        event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, message);
+        String messageText = String.join("\n", Text.colorize(player, messages.Kick.Connecting));
+        Component kickMessage = Component.text(messageText);
+        event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, kickMessage);
     }
 }

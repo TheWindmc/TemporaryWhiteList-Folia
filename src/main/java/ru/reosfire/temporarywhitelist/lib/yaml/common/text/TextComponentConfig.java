@@ -1,7 +1,11 @@
 package ru.reosfire.temporarywhitelist.lib.yaml.common.text;
 
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,7 +24,7 @@ public class TextComponentConfig extends YamlConfig
     public final List<TextComponentConfig> Content;
     public final ClickConfig ClickConfig;
     public final HoverConfig HoverConfig;
-    public final ChatColor Color;
+    public final TextColor Color;
     public final boolean Bold;
     public final boolean Italic;
     public final boolean Strikethrough;
@@ -46,7 +50,7 @@ public class TextComponentConfig extends YamlConfig
         HoverConfig = hoverSection == null ? null : new HoverConfig(hoverSection);
 
         String color = getString("Color");
-        Color = color == null ? null : ChatColor.valueOf(color.toUpperCase(Locale.ROOT));
+        Color = color == null ? null : NamedTextColor.NAMES.value(color.toLowerCase(Locale.ROOT));
 
         Bold = getBoolean("Bold", false);
         Italic = getBoolean("Italic", false);
@@ -56,42 +60,46 @@ public class TextComponentConfig extends YamlConfig
 
     public void Send(CommandSender receiver, Replacement... replacements)
     {
-        if (receiver instanceof Player)
+        if (receiver instanceof Player player)
         {
-            Player player = (Player) receiver;
-            player.spigot().sendMessage(Unwrap(player, replacements));
+            player.sendMessage(Unwrap(player, replacements));
         }
         else receiver.sendMessage(toString(replacements));
     }
 
-    public TextComponent Unwrap(OfflinePlayer player, Replacement... replacements)
+    public Component Unwrap(OfflinePlayer player, Replacement... replacements)
     {
         return Unwrap(s -> Text.colorize(player, s, replacements));
     }
 
-    public TextComponent Unwrap(IColorizer colorizer)
+    public Component Unwrap(IColorizer colorizer)
     {
-        TextComponent result;
-        if (Content == null) result = new TextComponent(TextComponent.fromLegacyText(colorizer.colorize(TextContent)));
+        TextComponent.Builder builder;
+
+        if (Content == null)
+        {
+            Component legacy = LegacyComponentSerializer.legacyAmpersand().deserialize(colorizer.colorize(TextContent));
+            builder = Component.text().append(legacy);
+        }
         else
         {
-            TextComponent[] subComponents = new TextComponent[Content.size()];
-            for (int i = 0; i < subComponents.length; i++)
-                subComponents[i] = Content.get(i).Unwrap(colorizer);
-            result = new TextComponent(subComponents);
+            builder = Component.text();
+            for (TextComponentConfig subComponent : Content)
+            {
+                builder.append(subComponent.Unwrap(colorizer));
+            }
         }
 
-        if (ClickConfig != null) result.setClickEvent(ClickConfig.Unwrap(colorizer));
-        if (HoverConfig != null) result.setHoverEvent(HoverConfig.Unwrap(colorizer));
+        if (ClickConfig != null) builder.clickEvent(ClickConfig.Unwrap(colorizer));
+        if (HoverConfig != null) builder.hoverEvent(HoverConfig.Unwrap(colorizer));
+        if (Color != null) builder.color(Color);
 
-        if (Color != null) result.setColor(Color);
+        builder.decoration(TextDecoration.BOLD, Bold);
+        builder.decoration(TextDecoration.ITALIC, Italic);
+        builder.decoration(TextDecoration.UNDERLINED, Underlined);
+        builder.decoration(TextDecoration.STRIKETHROUGH, Strikethrough);
 
-        result.setBold(Bold);
-        result.setItalic(Italic);
-        result.setUnderlined(Underlined);
-        result.setStrikethrough(Strikethrough);
-
-        return result;
+        return builder.build();
     }
 
     public String toString(Replacement... replacements)

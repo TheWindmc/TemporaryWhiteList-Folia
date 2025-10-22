@@ -33,14 +33,14 @@ public class MinecraftDefaultImportCommand extends CommandNode
         if (sendMessageIf(args.length != 2, commandResults.MinecraftDefaultUsage, sender)) return true;
 
         AtomicReference<Long> defaultTime = new AtomicReference<>();
-        if (!tryParse(timeConverter::parseTime, args[0], defaultTime))
+        if (tryParse(timeConverter::parseTime, args[0], defaultTime))
         {
             commandResults.IncorrectTime.Send(sender);
             return true;
         }
 
         AtomicReference<Boolean> defaultPermanent = new AtomicReference<>();
-        if (!tryParse(Boolean::parseBoolean, args[1], defaultPermanent))
+        if (tryParse(Boolean::parseBoolean, args[1], defaultPermanent))
         {
             commandResults.IncorrectPermanent.Send(sender);
             return true;

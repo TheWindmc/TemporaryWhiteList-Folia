@@ -81,7 +81,7 @@ public class CheckCommand extends CommandNode
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args)
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String @NotNull [] args)
     {
         if (!sender.hasPermission("TemporaryWhitelist.Administrate.CheckOther"))
             return super.onTabComplete(sender, command, alias, args);

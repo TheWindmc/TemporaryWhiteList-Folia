@@ -13,9 +13,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class CommandNode implements CommandExecutor, TabCompleter
 {
+    private static final Logger LOGGER = Logger.getLogger("CommandNode");
     private final String noPermissionMessage;
     private List<CommandNode> children = null;
 
@@ -32,21 +35,20 @@ public abstract class CommandNode implements CommandExecutor, TabCompleter
                 Constructor<?> constructor = declaredClass.getDeclaredConstructor(this.getClass());
                 Object innerInstance = constructor.newInstance(this);
 
-                if (innerInstance instanceof CommandNode)
+                if (innerInstance instanceof CommandNode commandNode)
                 {
-                    CommandNode commandNode = (CommandNode) innerInstance;
                     addChildren(commandNode);
                 }
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Error loading command node: " + declaredClass.getName(), e);
             }
         }
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args)
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args)
     {
         String requiredPermission = getPermission();
         if (!(sender instanceof ConsoleCommandSender) && requiredPermission != null && !sender.hasPermission(requiredPermission))
@@ -78,14 +80,14 @@ public abstract class CommandNode implements CommandExecutor, TabCompleter
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args)
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String @NotNull [] args)
     {
         String requiredPermission = getPermission();
         if (!(sender instanceof ConsoleCommandSender) && requiredPermission != null && !sender.hasPermission(requiredPermission) && !sender.isOp())
         {
             return Collections.emptyList();
         }
-        if (children == null) return completeTab(args);
+        if (children == null) return completeTab();
         for (CommandNode child : children)
         {
             if (child.getName().equals(args[0]))
@@ -125,7 +127,7 @@ public abstract class CommandNode implements CommandExecutor, TabCompleter
                 if (ex != null)
                 {
                     sender.sendMessage(ChatColor.RED + "Unhandled exception while executing async command. More info in console");
-                    ex.printStackTrace();
+                    LOGGER.log(Level.SEVERE, "Unhandled exception in async command", ex);
                 }
                 return null;
             });
@@ -133,9 +135,10 @@ public abstract class CommandNode implements CommandExecutor, TabCompleter
         }
         return execute(sender, args);
     }
+
     protected abstract boolean execute(CommandSender sender, String[] args);
 
-    protected List<String> completeTab(String[] args)
+    protected List<String> completeTab()
     {
         return Collections.emptyList();
     }
@@ -146,17 +149,20 @@ public abstract class CommandNode implements CommandExecutor, TabCompleter
         if (annotation == null) return null;
         return annotation.value();
     }
+
     protected String getPermission()
     {
         CommandPermission annotation = this.getClass().getAnnotation(CommandPermission.class);
         if (annotation == null) return null;
         return annotation.value();
     }
+
     protected boolean isAsync()
     {
         ExecuteAsync annotation = this.getClass().getAnnotation(ExecuteAsync.class);
         return annotation != null;
     }
+
     private int getArgsCount()
     {
         ArgsCount annotation = this.getClass().getAnnotation(ArgsCount.class);
@@ -180,11 +186,11 @@ public abstract class CommandNode implements CommandExecutor, TabCompleter
         try
         {
             container.set(parser.apply(s));
-            return true;
+            return false;
         }
         catch (Exception e)
         {
-            return false;
+            return true;
         }
     }
 

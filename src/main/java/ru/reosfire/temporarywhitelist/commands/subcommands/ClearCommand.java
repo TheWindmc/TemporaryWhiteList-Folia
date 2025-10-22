@@ -2,7 +2,6 @@ package ru.reosfire.temporarywhitelist.commands.subcommands;
 
 import org.bukkit.command.CommandSender;
 import ru.reosfire.temporarywhitelist.TemporaryWhiteList;
-import ru.reosfire.temporarywhitelist.configuration.localization.commandResults.ClearCommandResultsConfig;
 import ru.reosfire.temporarywhitelist.lib.commands.CommandName;
 import ru.reosfire.temporarywhitelist.lib.commands.CommandNode;
 import ru.reosfire.temporarywhitelist.lib.commands.CommandPermission;
@@ -15,12 +14,10 @@ public class ClearCommand extends CommandNode
 {
     private int confirmationCode = -1;
     private final TemporaryWhiteList plugin;
-    private final ClearCommandResultsConfig commandResults;
 
     public ClearCommand(TemporaryWhiteList pluginInstance)
     {
         super(pluginInstance.getMessages().NoPermission);
-        commandResults = pluginInstance.getMessages().CommandResults.Clear;
         plugin = pluginInstance;
     }
 
@@ -29,7 +26,7 @@ public class ClearCommand extends CommandNode
     {
         if (confirmationCode == -1) {
             confirmationCode = ThreadLocalRandom.current().nextInt(9000) + 1000;
-            sender.sendMessage("To confirm clear use: /clear " + confirmationCode + "or any other number to cancel");
+            sender.sendMessage("To confirm clear use: /clear " + confirmationCode + " or any other number to cancel");
         } else {
             if (args.length == 0) {
                 sender.sendMessage("To confirm clear use: /clear " + confirmationCode);

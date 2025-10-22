@@ -13,6 +13,8 @@ import ru.reosfire.temporarywhitelist.lib.text.Replacement;
 import ru.reosfire.temporarywhitelist.TemporaryWhiteList;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @CommandName("remove")
@@ -20,6 +22,8 @@ import java.util.stream.Collectors;
 @ExecuteAsync
 public class RemoveCommand extends CommandNode
 {
+    private static final Logger LOGGER = Logger.getLogger("RemoveCommand");
+
     private final RemoveCommandResultsConfig commandResults;
     private final PlayerDatabase database;
     private final boolean forceSync;
@@ -31,11 +35,11 @@ public class RemoveCommand extends CommandNode
         database = pluginInstance.getDatabase();
         this.forceSync = forceSync;
     }
+
     public RemoveCommand(TemporaryWhiteList pluginInstance)
     {
         this(pluginInstance, false);
     }
-
 
     @Override
     public boolean execute(CommandSender sender, String[] args)
@@ -55,7 +59,7 @@ public class RemoveCommand extends CommandNode
             catch (Exception e)
             {
                 commandResults.Error.Send(sender, playerReplacement);
-                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Error removing player " + args[0], e);
             }
         }
         else
@@ -67,7 +71,7 @@ public class RemoveCommand extends CommandNode
                 else
                 {
                     commandResults.Error.Send(sender, playerReplacement);
-                    exception.printStackTrace();
+                    LOGGER.log(Level.SEVERE, "Error removing player during async operation", exception);
                 }
             });
         }
@@ -75,7 +79,7 @@ public class RemoveCommand extends CommandNode
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args)
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String @NotNull [] args)
     {
         if (args.length == 1)
             return database.allList().stream().map(e -> e.Name).filter(e -> e.startsWith(args[0])).collect(Collectors.toList());

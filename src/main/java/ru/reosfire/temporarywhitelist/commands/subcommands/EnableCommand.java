@@ -7,10 +7,15 @@ import ru.reosfire.temporarywhitelist.lib.commands.CommandNode;
 import ru.reosfire.temporarywhitelist.lib.commands.CommandPermission;
 import ru.reosfire.temporarywhitelist.TemporaryWhiteList;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 @CommandName("enable")
 @CommandPermission("TemporaryWhitelist.Administrate.EnableDisable")
 public class EnableCommand extends CommandNode
 {
+    private static final Logger LOGGER = Logger.getLogger("EnableCommand");
+
     private final TemporaryWhiteList plugin;
     private final EnableCommandResultsConfig commandResults;
 
@@ -32,7 +37,7 @@ public class EnableCommand extends CommandNode
         catch (Exception e)
         {
             commandResults.Error.Send(sender);
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error enabling whitelist", e);
         }
         return true;
     }

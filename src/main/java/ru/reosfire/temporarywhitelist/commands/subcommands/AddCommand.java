@@ -17,6 +17,8 @@ import ru.reosfire.temporarywhitelist.TimeConverter;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @CommandName("add")
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 @ExecuteAsync
 public class AddCommand extends CommandNode
 {
+    private static final Logger LOGGER = Logger.getLogger("AddCommand");
+
     private final AddCommandResultsConfig commandResults;
     private final PlayerDatabase database;
     private final TimeConverter timeConverter;
@@ -37,6 +41,7 @@ public class AddCommand extends CommandNode
         timeConverter = pluginInstance.getTimeConverter();
         this.forceSync = forceSync;
     }
+
     public AddCommand(TemporaryWhiteList pluginInstance)
     {
         this(pluginInstance, false);
@@ -62,7 +67,7 @@ public class AddCommand extends CommandNode
         else
         {
             AtomicReference<Long> time = new AtomicReference<>();
-            if (!tryParse(timeConverter::parseTime, args[1], time))
+            if (tryParse(timeConverter::parseTime, args[1], time))
             {
                 commandResults.IncorrectTime.Send(sender);
                 return true;
@@ -77,7 +82,7 @@ public class AddCommand extends CommandNode
                 catch (Exception e)
                 {
                     commandResults.Error.Send(sender, playerReplacement, timeReplacement);
-                    e.printStackTrace();
+                    LOGGER.log(Level.SEVERE, "Error adding player " + args[0] + " with time " + args[1], e);
                 }
             }
             else
@@ -96,12 +101,12 @@ public class AddCommand extends CommandNode
         else
         {
             commandResults.Error.Send(sender, replacements);
-            exception.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error during async database operation", exception);
         }
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args)
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String @NotNull [] args)
     {
         if (args.length == 1)
             return database.allList().stream().map(e -> e.Name).filter(e -> e.startsWith(args[0])).collect(Collectors.toList());

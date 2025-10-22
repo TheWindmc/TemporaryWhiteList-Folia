@@ -1,12 +1,12 @@
-name: '${project.name}'
-version: '${project.version}'
+name: '${name}'
+version: '${version}'
 main: ru.reosfire.temporarywhitelist.TemporaryWhiteList
 prefix: TWL
-authors: [ reosfire ]
+authors: [ reosfire, Kyvald0 ]
 description: Nicknames based temporary white list
-website: https://www.spigotmc.org/resources/temporarywhitelist.99914
+website: https://github.com/TheWindmc/TemporaryWhiteList-Folia
 load: STARTUP
-api-version: 1.13
+api-version: 1.21
 softdepend:
   - PlaceholderAPI
   - EasyWhitelist

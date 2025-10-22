@@ -66,18 +66,21 @@ public class PlaceholdersExpansion extends PlaceholderExpansion
         PlayerData playerData = database.getPlayerData(player.getName());
         if (playerData == null) return messages.PlayerStatuses.Undefined;
 
-        if (params.equals("player_status"))
-        {
-            if (playerData.Permanent) return messages.PlayerStatuses.NeverEnd;
-            long timeLeft = playerData.timeLeft();
-            if (timeLeft < 0) return messages.PlayerStatuses.Ended;
-            return timeConverter.durationToString(timeLeft);
+        switch (params) {
+            case "player_status":
+                if (playerData.Permanent) return messages.PlayerStatuses.NeverEnd;
+                long timeLeft = playerData.timeLeft();
+                if (timeLeft < 0) return messages.PlayerStatuses.Ended;
+                return timeConverter.durationToString(timeLeft);
+            case "start_time":
+                return timeConverter.dateTimeToString(playerData.StartTime);
+            case "left_time":
+                return timeConverter.durationToString(Math.max(playerData.timeLeft(), 0));
+            case "end_time":
+                return timeConverter.dateTimeToString(playerData.endTime());
+            case "permanent":
+                return Boolean.toString(playerData.Permanent);
         }
-
-        if (params.equals("start_time")) return timeConverter.dateTimeToString(playerData.StartTime);
-        if (params.equals("left_time")) return timeConverter.durationToString(Math.max(playerData.timeLeft(), 0));
-        if (params.equals("end_time")) return timeConverter.dateTimeToString(playerData.endTime());
-        if (params.equals("permanent")) return Boolean.toString(playerData.Permanent);
 
         return super.onRequest(player, params);
     }

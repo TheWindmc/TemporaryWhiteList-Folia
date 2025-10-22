@@ -6,6 +6,7 @@ import ru.reosfire.temporarywhitelist.TemporaryWhiteList;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.logging.Level;
 
 public class LocalizationsLoader
 {
@@ -37,10 +38,12 @@ public class LocalizationsLoader
 
             try (InputStream resource = plugin.getResource("translations/" + translationsResource))
             {
+                assert resource != null;
                 Files.copy(resource, translationFile.toPath());
             }
             catch (Exception e)
             {
+                plugin.getLogger().log(Level.SEVERE, "Can't load " + translationsResource + " from plugin jar. Is it corrupted?", e);
                 throw new RuntimeException("Can't load " + translationsResource + " from plugin jar. Is it corrupted?", e);
             }
         }
@@ -54,7 +57,7 @@ public class LocalizationsLoader
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, "Can't load translation file", e);
             throw new RuntimeException("Can't load translation file", e);
         }
     }

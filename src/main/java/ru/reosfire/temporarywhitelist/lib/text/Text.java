@@ -41,6 +41,7 @@ public class Text
         result = Replacement.set(result, replacements);
         return setColors(result);
     }
+
     public static List<String> colorize(OfflinePlayer player, List<String> input, Replacement... replacements)
     {
         List<String> result = new ArrayList<>(input.size());

@@ -12,10 +12,14 @@ import ru.reosfire.temporarywhitelist.TimeConverter;
 
 import javax.management.ReflectionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @CommandName("easy-whitelist")
 public class EasyWhitelistImportCommand extends CommandNode
 {
+    private static final Logger LOGGER = Logger.getLogger("EasyWhitelistImportCommand");
+
     private final ImportCommandResultConfig commandResults;
     private final PlayerDatabase database;
     private final TimeConverter timeConverter;
@@ -34,14 +38,14 @@ public class EasyWhitelistImportCommand extends CommandNode
         if (sendMessageIf(args.length != 2, commandResults.EasyWhiteListUsage, sender)) return true;
 
         AtomicReference<Long> defaultTime = new AtomicReference<>();
-        if (!tryParse(timeConverter::parseTime, args[0], defaultTime))
+        if (tryParse(timeConverter::parseTime, args[0], defaultTime))
         {
             commandResults.IncorrectTime.Send(sender);
             return true;
         }
 
         AtomicReference<Boolean> defaultPermanent = new AtomicReference<>();
-        if (!tryParse(Boolean::parseBoolean, args[1], defaultPermanent))
+        if (tryParse(Boolean::parseBoolean, args[1], defaultPermanent))
         {
             commandResults.IncorrectPermanent.Send(sender);
             return true;
@@ -56,7 +60,7 @@ public class EasyWhitelistImportCommand extends CommandNode
         catch (ReflectionException e)
         {
             commandResults.EasyWhiteListPluginNotFound.Send(sender);
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "EasyWhitelist plugin not found or reflection error", e);
         }
         return true;
     }

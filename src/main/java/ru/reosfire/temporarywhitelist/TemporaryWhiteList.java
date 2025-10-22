@@ -1,6 +1,5 @@
 package ru.reosfire.temporarywhitelist;
 
-import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,6 +17,7 @@ import ru.reosfire.temporarywhitelist.loaders.LocalizationsLoader;
 
 import java.io.*;
 import java.util.Objects;
+import java.util.logging.Level;
 
 public final class TemporaryWhiteList extends JavaPlugin
 {
@@ -57,15 +57,6 @@ public final class TemporaryWhiteList extends JavaPlugin
     public void onEnable()
     {
         load();
-
-        UpdateChecker updateChecker = new UpdateChecker(this, 99914);
-        updateChecker.getVersion(version ->
-        {
-            if (version.equalsIgnoreCase(getDescription().getVersion()))
-                getLogger().info("Plugin is up to date. Please rate it: https://www.spigotmc.org/resources/temporarywhitelist.99914");
-            else
-                getLogger().info("There is a new version (" + version + ") available: https://www.spigotmc.org/resources/temporarywhitelist.99914");
-        });
     }
 
     public void load()
@@ -135,7 +126,7 @@ public final class TemporaryWhiteList extends JavaPlugin
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            getLogger().log(Level.SEVERE, "Error while loading config!", e);
             throw new RuntimeException("Error while loading config!");
         }
     }
@@ -156,8 +147,7 @@ public final class TemporaryWhiteList extends JavaPlugin
             }
             catch (Exception e)
             {
-                e.printStackTrace();
-                Bukkit.getLogger().warning("Can't connect to mysql data base! This plugin will use yaml data storing");
+                getLogger().log(Level.SEVERE, "Can't connect to mysql database! This plugin will use yaml data storing", e);
                 dataProvider = loadYamlData(config);
             }
         }
@@ -174,7 +164,7 @@ public final class TemporaryWhiteList extends JavaPlugin
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            getLogger().log(Level.SEVERE, "Error while loading yaml database!", e);
             throw new RuntimeException("Error while loading yaml database!");
         }
     }
@@ -187,7 +177,7 @@ public final class TemporaryWhiteList extends JavaPlugin
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            getLogger().log(Level.SEVERE, "Error while loading sql database!", e);
             throw new RuntimeException("Error while loading sql database!");
         }
     }
@@ -216,7 +206,13 @@ public final class TemporaryWhiteList extends JavaPlugin
 
         try
         {
-            if (!configFile.exists()) configFile.createNewFile();
+            if (!configFile.exists())
+            {
+                if (!configFile.createNewFile())
+                {
+                    throw new IOException("Failed to create enabled.txt file");
+                }
+            }
 
             try(FileWriter fileWriter = new FileWriter(configFile);
                 BufferedWriter writer = new BufferedWriter(fileWriter))
@@ -226,6 +222,7 @@ public final class TemporaryWhiteList extends JavaPlugin
         }
         catch (Exception e)
         {
+            getLogger().log(Level.SEVERE, "Error while setting enabled in file", e);
             throw new RuntimeException("Error while setting enabled in file", e);
         }
 
@@ -250,7 +247,7 @@ public final class TemporaryWhiteList extends JavaPlugin
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            getLogger().log(Level.WARNING, "Error while reading enabled file, defaulting to true", e);
             return true;
         }
     }

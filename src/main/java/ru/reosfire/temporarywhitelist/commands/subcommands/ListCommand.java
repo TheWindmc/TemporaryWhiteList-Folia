@@ -49,7 +49,7 @@ public class ListCommand extends CommandNode
         }
 
         List<PlayerData> players = database.activeList();
-        if (players.size() == 0)
+        if (players.isEmpty())
         {
             commandResults.ListIsEmpty.Send(sender);
             return true;

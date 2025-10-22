@@ -15,6 +15,8 @@ import ru.reosfire.temporarywhitelist.TimeConverter;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @CommandName("set")
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 @ExecuteAsync
 public class SetCommand extends CommandNode
 {
+    private static final Logger LOGGER = Logger.getLogger("SetCommand");
+
     private final SetCommandResultsConfig commandResults;
     private final PlayerDatabase database;
     private final TimeConverter timeConverter;
@@ -35,6 +39,7 @@ public class SetCommand extends CommandNode
         timeConverter = pluginInstance.getTimeConverter();
         this.forceSync = forceSync;
     }
+
     public SetCommand(TemporaryWhiteList pluginInstance)
     {
         this(pluginInstance, false);
@@ -51,7 +56,7 @@ public class SetCommand extends CommandNode
         if (args[1].equals("permanent"))
         {
             database.setPermanent(args[0]).whenComplete((changed, exception) ->
-                    handleCompletion(changed, exception, sender,playerReplacement, timeReplacement));
+                    handleCompletion(changed, exception, sender, playerReplacement, timeReplacement));
         }
         else
         {
@@ -77,7 +82,7 @@ public class SetCommand extends CommandNode
                 catch (Exception e)
                 {
                     commandResults.Error.Send(sender, playerReplacement, timeReplacement);
-                    e.printStackTrace();
+                    LOGGER.log(Level.SEVERE, "Error setting player time for " + args[0], e);
                 }
             }
             else
@@ -98,12 +103,12 @@ public class SetCommand extends CommandNode
         else
         {
             commandResults.Error.Send(sender, replacements);
-            exception.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error during database operation", exception);
         }
     }
 
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args)
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String @NotNull [] args)
     {
         if (args.length == 1)
             return database.allList().stream().map(e -> e.Name).filter(e -> e.startsWith(args[0])).collect(Collectors.toList());
