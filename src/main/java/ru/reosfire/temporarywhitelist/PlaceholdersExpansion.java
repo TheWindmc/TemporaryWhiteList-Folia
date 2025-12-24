@@ -38,7 +38,7 @@ public class PlaceholdersExpansion extends PlaceholderExpansion
     @Override
     public @NotNull String getAuthor()
     {
-        return pluginInstance.getDescription().getAuthors().toString();
+        return pluginInstance.getPluginMeta().getAuthors().toString();
     }
 
     @Override
@@ -50,7 +50,7 @@ public class PlaceholdersExpansion extends PlaceholderExpansion
     @Override
     public @NotNull String getVersion()
     {
-        return pluginInstance.getDescription().getVersion();
+        return pluginInstance.getPluginMeta().getVersion();
     }
 
     @Override
