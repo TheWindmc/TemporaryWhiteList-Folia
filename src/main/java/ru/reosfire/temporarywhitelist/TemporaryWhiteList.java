@@ -2,7 +2,10 @@ package ru.reosfire.temporarywhitelist;
 
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.reosfire.temporarywhitelist.api.TemporaryWhiteListAPI;
+import ru.reosfire.temporarywhitelist.api.TemporaryWhiteListAPIImpl;
 import ru.reosfire.temporarywhitelist.commands.TwlCommand;
 import ru.reosfire.temporarywhitelist.commands.TwlSyncCommand;
 import ru.reosfire.temporarywhitelist.configuration.Config;
@@ -29,6 +32,7 @@ public final class TemporaryWhiteList extends JavaPlugin
     private PlaceholdersExpansion placeholdersExpansion;
     private TimeConverter timeConverter;
     private OnlinePlayersKicker onlinePlayersKicker;
+    private TemporaryWhiteListAPI api;
 
     public Config getConfiguration()
     {
@@ -47,6 +51,11 @@ public final class TemporaryWhiteList extends JavaPlugin
         return timeConverter;
     }
 
+    public TemporaryWhiteListAPI getAPI()
+    {
+        return api;
+    }
+
     public boolean isWhiteListEnabled()
     {
         return enabled;
@@ -57,6 +66,15 @@ public final class TemporaryWhiteList extends JavaPlugin
     public void onEnable()
     {
         load();
+    }
+
+    @Override
+    public void onDisable()
+    {
+        if (api != null)
+        {
+            getServer().getServicesManager().unregisterAll(this);
+        }
     }
 
     public void load()
@@ -100,6 +118,16 @@ public final class TemporaryWhiteList extends JavaPlugin
         getServer().getPluginManager().registerEvents(eventsListener, this);
 
         onlinePlayersKicker = new OnlinePlayersKicker(this);
+
+        getLogger().info("Registering API...");
+        api = new TemporaryWhiteListAPIImpl(this);
+        getServer().getServicesManager().register(
+                TemporaryWhiteListAPI.class,
+                api,
+                this,
+                ServicePriority.Normal
+        );
+        getLogger().info("API registered successfully");
 
         if (getEnabledInFile())
         {
