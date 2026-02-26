@@ -32,7 +32,7 @@ jobs:
         id: gradle_props
         run: |
           VERSION=$(grep "^plugin_version" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
-          echo "plugin_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
       - name: Create tag if not exists
@@ -55,8 +55,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: TemporaryWhiteList-${{ steps.gradle_props.outputs.version }}
-          path: build/libs/TemporaryWhiteList*.jar
-          
+          path: build/libs/*.jar
+
       - name: Create or Update Release
         uses: softprops/action-gh-release@v2
         with:
