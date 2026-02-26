@@ -1,11 +1,9 @@
 name: Build release
 
-on: 
+on:
   push:
     tags:
-        - '*'
-  release:
-    types: [ published ]
+      - '*'
   workflow_dispatch:
 
 jobs:
@@ -14,8 +12,10 @@ jobs:
     permissions:
       contents: write
     steps:
-    
+
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       
       - name: Setup up JDK 21
         uses: actions/setup-java@v5
@@ -34,6 +34,19 @@ jobs:
           VERSION=$(grep "^plugin_version" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
           echo "plugin_version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
+
+      - name: Create tag if not exists
+        run: |
+          VERSION=${{ steps.gradle_props.outputs.version }}
+
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag already exists"
+          else
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git tag $VERSION
+            git push origin $VERSION -o ci.skip
+          fi
           
       - name: Build with Gradle
         run: ./gradlew shadowJar
@@ -41,18 +54,19 @@ jobs:
       - name: Upload JAR as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SAPI-${{ steps.gradle_props.outputs.version }}
-          path: build/libs/SAPI*.jar
+          name: TemporaryWhiteList-${{ steps.gradle_props.outputs.version }}
+          path: build/libs/TemporaryWhiteList*.jar
           
       - name: Create or Update Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ steps.gradle_props.outputs.version }}
+          name: ${{ steps.gradle_props.outputs.version }}
           files: build/libs/*.jar
+          tag_name: ${{ steps.gradle_props.outputs.version }}
           generate_release_notes: true
           fail_on_unmatched_files: false
           draft: false
-          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+          prerelease: ${{ contains(steps.gradle_props.outputs.version, 'beta') || contains(steps.gradle_props.outputs.version, 'alpha') || contains(steps.gradle_props.outputs.version, 'SNAPSHOT') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
