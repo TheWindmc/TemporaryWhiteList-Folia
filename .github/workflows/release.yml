@@ -31,12 +31,12 @@ jobs:
       - name: Read version from gradle.properties
         id: gradle_props
         run: |
-          VERSION=$(grep "^version" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=$(grep "^plugin_version" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          echo "plugin_version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
           
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew shadowJar
         
       - name: Upload JAR as artifact
         uses: actions/upload-artifact@v4
@@ -48,7 +48,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ steps.gradle_props.outputs.version }}
-          tag_name: ${{ github.ref_name }}
           files: build/libs/*.jar
           generate_release_notes: true
           fail_on_unmatched_files: false
